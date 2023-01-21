@@ -49,6 +49,7 @@ theme_set(plot_theme)
 firepower <- read.csv("./data/firepower.csv", sep = ",", header = TRUE) %>%
     select(-X, -country, -labor_force, -foreign_exchange_gold,
            -external_debt, -oil_consumption, -oil_proven_reserves) %>%
+    mutate(power_index = 1 / power_index) %>%
     as_tibble()
 
 air_power <- firepower %>%
@@ -103,3 +104,33 @@ naval_power_plot <- ggplot(
    facet_wrap(~ naval_asset)
 
 naval_power_plot
+
+# Fit Ordinary Least Squares
+ols_mod <- lm(formula = power_index ~ ., data = firepower)
+
+X <- data.matrix(firepower[, -1])
+y <- data.matrix(firepower$power_index)
+
+ridge_mod <- cv.glmnet(x = X, y = y, family = "gaussian", alpha = 0, nfold = 10)
+lasso_mod <- cv.glmnet(x = X, y = y, family = "gaussian", alpha = 1, nfold = 10)
+
+par(mfrow = c(1, 2))
+plot(ridge_mod$glmnet.fit, xvar = "lambda", lwd = 1.5, main = "Ridge")
+plot(lasso_mod$glmnet.fit, xvar = "lambda", lwd = 1.5, main = "Lasso")
+
+ols_coefs <- ols_mod$coefficients
+
+ridge_coefs <- coef(ridge_mod, s = "lambda.min") %>%
+   as.matrix() %>%
+   as.data.frame() %>%
+   rename(Ridge = s1)
+
+lasso_coefs <- coef(lasso_mod, s = "lambda.min") %>%
+   as.matrix() %>%
+   as.data.frame() %>%
+   rename(Lasso = s1)
+
+coef_table <- cbind(ols_coefs, ridge_coefs, lasso_coefs)
+
+print(ridge_mod)
+print(lasso_mod)
