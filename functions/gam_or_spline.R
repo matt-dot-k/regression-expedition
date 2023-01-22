@@ -18,6 +18,11 @@ gam_or_spline <- function(data, method = c("gam", "spline"), df = NULL) {
         stop("data cannot have missing values")
     }
 
+    # Ensure specified method is valid
+    if (method %in% c("gam", "spline") == FALSE) {
+        stop("specified method must be either 'gam' or 'spline'")
+    }
+
     # Switch between GAM and spline
     method <- match.arg(method)
     model <- switch(method,
