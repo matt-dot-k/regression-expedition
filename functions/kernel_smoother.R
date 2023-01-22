@@ -4,13 +4,14 @@
 #' @param bandwidth The coverage range of the kernel
 
 kernel_smoother <- function(x, y, kernel = c("gaussian", "uniform"), bandwidth) {
-    dist <- as.matrix(dist(df$x))
+    dist <- as.matrix(dist(x))
     kernel <- match.arg(kernel)
 
     # Ensure specified kernel is valid
     if (kernel %in% c("gaussian", "uniform") == FALSE) {
         stop("specified kernel must be either gaussian or uniform")
     }
+
     # Fit kernel regression
     S <- switch(
         kernel,
